@@ -1,8 +1,9 @@
-﻿<ui:FluentWindow x:Class="DeskCycle.Desktop.MainWindow"
+<ui:FluentWindow x:Class="DeskCycle.Desktop.MainWindow"
                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                 xmlns:views="clr-namespace:DeskCycle.Desktop.Views"
+                xmlns:vm="clr-namespace:DeskCycle.Desktop.ViewModels"
                 Title="DigitalDeskCycle"
                 Height="720" Width="920"
                 MinHeight="520" MinWidth="640"
@@ -11,6 +12,106 @@
                 ExtendsContentIntoTitleBar="True"
                 WindowStartupLocation="CenterScreen"
                 TextOptions.TextFormattingMode="Display">
+
+    <ui:FluentWindow.Resources>
+        <!-- One link: green while it is counting, red while nothing is, grey
+             while the other one has the job. The pill marks the source actually
+             in use, so that a glance answers "which cable am I on?". -->
+        <DataTemplate DataType="{x:Type vm:LinkIndicatorViewModel}">
+            <!-- The same corner radius the buttons use: a pill would be the only
+                 one of its kind in the window. -->
+            <Border ToolTip="{Binding Tooltip}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                    Padding="8,4" Margin="2,0" BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding State}" Value="Active">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+                                <Setter Property="BorderBrush"
+                                        Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16">
+                    <ui:SymbolIcon.Style>
+                        <Style TargetType="ui:SymbolIcon">
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding State}" Value="Active">
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding State}" Value="Offline">
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:SymbolIcon.Style>
+                </ui:SymbolIcon>
+            </Border>
+        </DataTemplate>
+
+        <!-- Tab strip on the left, status and reset on the right, both in the
+             same row. Without its own template the strip content would have to
+             be positioned over the tabs by hand.
+             Follows the library's own TabControl template; only the header row
+             gained a second column. The library style applies to TabControl
+             itself and is therefore out of reach for a subclass. The styling of
+             the individual TabItem, on the other hand, is inherited untouched. -->
+        <Style TargetType="{x:Type views:StripTabControl}">
+            <Setter Property="Foreground" Value="{DynamicResource TabViewForeground}" />
+            <Setter Property="Background" Value="{DynamicResource TabViewBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TabViewBorderBrush}" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type views:StripTabControl}">
+                        <Grid KeyboardNavigation.TabNavigation="Local">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TabPanel x:Name="HeaderPanel" IsItemsHost="True" Panel.ZIndex="1"
+                                          KeyboardNavigation.TabIndex="1"
+                                          KeyboardNavigation.TabNavigation="Local"
+                                          KeyboardNavigation.DirectionalNavigation="Contained" />
+
+                                <ContentPresenter Grid.Column="1" Margin="12,0,0,0"
+                                                  VerticalAlignment="Center"
+                                                  Content="{TemplateBinding StripContent}" />
+                            </Grid>
+
+                            <Border Grid.Row="1" Padding="0,4,4,4"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="0,1,0,0">
+                                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                                  ContentSource="SelectedContent"
+                                                  HorizontalAlignment="Stretch"
+                                                  VerticalAlignment="Stretch"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ui:FluentWindow.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -24,13 +125,49 @@
             </ui:TitleBar.Icon>
         </ui:TitleBar>
 
-        <TabControl Grid.Row="1" Margin="12,0,12,12">
+        <views:StripTabControl Grid.Row="1" Margin="12,0,12,12">
+            <views:StripTabControl.StripContent>
+                <StackPanel Orientation="Horizontal" DataContext="{Binding Live}">
+                    <ContentPresenter Content="{Binding Usb}" />
+                    <ContentPresenter Content="{Binding Bluetooth}" />
+
+                    <!-- Period and reset belong to the live view; on the history
+                         tab they would refer to nothing visible. -->
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <!-- 0 is the live tab. -->
+                                    <DataTrigger Value="0"
+                                                 Binding="{Binding SelectedIndex,
+                                                     RelativeSource={RelativeSource AncestorType={x:Type views:StripTabControl}}}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <Border Width="1" Height="16" Margin="10,0"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+                        <TextBlock Text="{Binding PeriodText}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+
+                        <ui:Button Content="Zurücksetzen" FontSize="12" Padding="10,5"
+                                   Command="{Binding ResetNowCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </views:StripTabControl.StripContent>
+
             <TabItem Header="Live">
                 <views:LiveView DataContext="{Binding Live}" />
             </TabItem>
             <TabItem Header="Verlauf">
                 <views:HistoryView DataContext="{Binding History}" />
             </TabItem>
-        </TabControl>
+        </views:StripTabControl>
     </Grid>
 </ui:FluentWindow>

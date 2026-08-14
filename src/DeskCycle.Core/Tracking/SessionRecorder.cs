@@ -33,7 +33,11 @@ public sealed class SessionRecorder(
     private DateTimeOffset _sessionStartedAt;
     private DateTimeOffset _lastMovementAt;
 
-    private bool HasActiveSession => _sessionId != 0;
+    /// <summary>
+    /// Whether a session is running right now. Read from outside as well, by the
+    /// coordinator, which only changes source between sessions.
+    /// </summary>
+    public bool HasActiveSession => _sessionId != 0;
 
     /// <summary>
     /// After (re)connecting it is unknown how far the Pico's counter has run in
@@ -44,9 +48,10 @@ public sealed class SessionRecorder(
     public void OnSourceConnected() => _lastCount = null;
 
     public void OnSourceUnavailable() =>
-        Publish(reading: null, sourceName: null, connected: false, clock.GetUtcNow());
+        Publish(reading: null, CadenceSourceKind.None, sourceName: null, connected: false, clock.GetUtcNow());
 
-    public async Task OnReadingAsync(CadenceReading reading, string sourceName, CancellationToken ct)
+    public async Task OnReadingAsync(
+        CadenceReading reading, CadenceSourceKind sourceKind, string sourceName, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         var delta = ConsumeDelta(reading.Count);
@@ -81,7 +86,7 @@ public sealed class SessionRecorder(
             }
         }
 
-        Publish(reading, sourceName, connected: true, now, delta);
+        Publish(reading, sourceKind, sourceName, connected: true, now, delta);
     }
 
     public async Task CloseOpenSessionAsync(CancellationToken ct)
@@ -206,6 +211,7 @@ public sealed class SessionRecorder(
     /// </summary>
     private void Publish(
         CadenceReading? reading,
+        CadenceSourceKind sourceKind,
         string? sourceName,
         bool connected,
         DateTimeOffset now,
@@ -216,6 +222,7 @@ public sealed class SessionRecorder(
         var status = new LiveStatus
         {
             SensorConnected = connected,
+            SourceKind = sourceKind,
             SourceName = sourceName,
             SessionActive = HasActiveSession,
             SessionStartedAt = HasActiveSession ? _sessionStartedAt : null,

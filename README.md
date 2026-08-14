@@ -41,7 +41,7 @@ pedal nudged in passing does not become a training session.
 **Live** (*Live*) summarises the period **since the last reset** — think trip
 meter. Two ways to set it:
 
-- The button in the top right resets **to now**, for a deliberate fresh start.
+- The button beside the tab strip resets **to now**, for a deliberate fresh start.
 - When the first revolution of a new day arrives while the statistics still run
   from yesterday, a bar appears and asks. Its button resets **to today at
   00:00**, so half an hour already ridden is not lost.
@@ -66,12 +66,23 @@ There are two sources. The application takes the first one that works:
 2. **Bluetooth** (`BluetoothCadenceSource`) — reads the standard
    *Cycling Speed and Cadence* profile
 
-It switches **only when the active source fails**. Plugging in a cable while
-Bluetooth is counting does not take the connection away — otherwise the source
-would change mid-session without anyone asking for it.
+A running connection is never taken away **mid-session**: a change of source
+resets the reference count — the two count different counters — and the
+revolutions in between would be lost.
 
-Which source is counting is shown in the live view's status pill: `· COM3` or
-`· Bluetooth (DeskCycle)`.
+Between sessions it does switch, but only **towards** USB: while Bluetooth is
+counting and nothing is being ridden, the application checks every five seconds
+whether the serial port is back and then hands over. Without that, plugging the
+cable back in would leave the radio link in charge until it drops of its own
+accord. The other direction stays closed — whether the serial port exists costs
+a look at a list, whether the bike is within radio reach would cost a scan next
+to the running connection.
+
+Which source is counting is shown by the two icons beside the tab strip, one for
+USB and one for Bluetooth. The one delivering the samples is green and framed;
+the other stays grey, because whether it *could* be used is unknown while
+another connection is running. If nothing is connected, both turn red. The
+tooltip names the source, e.g. `USB verbunden · COM3`.
 
 ### Why USB comes first
 

@@ -46,6 +46,15 @@ public sealed class BluetoothCadenceSource(
 
     public string Name => "Bluetooth";
 
+    public CadenceSourceKind Kind => CadenceSourceKind.Bluetooth;
+
+    /// <summary>
+    /// Always false: whether the bike is within reach only a scan would tell,
+    /// and scanning next to a running connection is not worth it. Radio is the
+    /// fallback anyway -- nothing below it that it could take over from.
+    /// </summary>
+    public bool CanTakeOver() => false;
+
     public async Task<bool> TryRunAsync(CancellationToken cancellationToken)
     {
         if (!await Bluetooth.GetAvailabilityAsync())
@@ -76,21 +85,29 @@ public sealed class BluetoothCadenceSource(
             return false;
         }
 
-        var sourceName = $"Bluetooth ({device.Name})";
-        logger.LogInformation("Sensor connected via {Source}.", sourceName);
+        // The device name alone: that it came over radio is carried by the kind.
+        var sourceName = device.Name ?? _options.BluetoothDeviceName;
+        logger.LogInformation("Sensor connected over Bluetooth with {Device}.", sourceName);
 
         ResetCadenceState();
         recorder.OnSourceConnected();
 
-        await PumpAsync(measurement, sourceName, cancellationToken);
-
+        // In a finally: a handover to USB cancels the pump, and a link left
+        // connected would get in the way of the next scan.
         try
         {
-            device.Gatt.Disconnect();
+            await PumpAsync(measurement, sourceName, cancellationToken);
         }
-        catch (Exception ex)
+        finally
         {
-            logger.LogDebug(ex, "Disconnecting the radio link failed.");
+            try
+            {
+                device.Gatt.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, "Disconnecting the radio link failed.");
+            }
         }
 
         return true;
@@ -153,7 +170,7 @@ public sealed class BluetoothCadenceSource(
                     break;
                 }
 
-                await recorder.OnReadingAsync(reading, sourceName, cancellationToken);
+                await recorder.OnReadingAsync(reading, Kind, sourceName, cancellationToken);
             }
         }
         finally

@@ -6,6 +6,7 @@ using DeskCycle.Core.Statistics;
 using DeskCycle.Core.Tracking;
 using DeskCycle.Desktop.Services;
 using Microsoft.Extensions.Options;
+using Wpf.Ui.Controls;
 
 namespace DeskCycle.Desktop.ViewModels;
 
@@ -47,6 +48,8 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
         _status = live.Current;
         _summary = _period.Summarize();
 
+        UpdateLinks(_status);
+
         live.Changed += OnLiveChanged;
     }
 
@@ -81,11 +84,12 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
 
     // ------------------------------------------------------------ display
 
-    public bool IsSensorConnected => Status.SensorConnected;
+    /// <summary>The two links beside the tab strip, in the order they are preferred.</summary>
+    public LinkIndicatorViewModel Usb { get; } =
+        new(CadenceSourceKind.Usb, "USB", SymbolRegular.UsbPlug24);
 
-    public string ConnectionText => Status.SensorConnected
-        ? $"Sensor verbunden{(Status.SourceName is null ? "" : $" · {Status.SourceName}")}"
-        : "Kein Sensor — hängt der Pico am Strom?";
+    public LinkIndicatorViewModel Bluetooth { get; } =
+        new(CadenceSourceKind.Bluetooth, "Bluetooth", SymbolRegular.BluetoothConnected24);
 
     public string PeriodText
     {
@@ -243,9 +247,20 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
         ShowNewDayPrompt = true;
     }
 
+    private void UpdateLinks(LiveStatus status)
+    {
+        Usb.Update(status);
+        Bluetooth.Update(status);
+    }
+
     // A new sample changes practically every display -- a single signal for all
-    // bindings is more honest here than twenty attributes.
-    partial void OnStatusChanged(LiveStatus value) => OnPropertyChanged(string.Empty);
+    // bindings is more honest here than twenty attributes. The links are the
+    // exception: they notify for themselves so that their elements survive.
+    partial void OnStatusChanged(LiveStatus value)
+    {
+        UpdateLinks(value);
+        OnPropertyChanged(string.Empty);
+    }
 
     partial void OnSummaryChanged(PeriodSummary value) => OnPropertyChanged(string.Empty);
 

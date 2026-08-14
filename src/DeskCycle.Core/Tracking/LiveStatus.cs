@@ -8,7 +8,10 @@ public sealed record LiveStatus
 {
     public bool SensorConnected { get; init; }
 
-    /// <summary>Which source is counting, e.g. "COM3" or "Bluetooth (DeskCycle)".</summary>
+    /// <summary>Which kind of link is counting -- <see cref="CadenceSourceKind.None"/> while nothing is.</summary>
+    public CadenceSourceKind SourceKind { get; init; }
+
+    /// <summary>Which source is counting, e.g. "COM3" or the Bluetooth device name.</summary>
     public string? SourceName { get; init; }
 
     public bool SessionActive { get; init; }

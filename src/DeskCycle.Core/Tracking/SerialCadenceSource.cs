@@ -24,6 +24,37 @@ public sealed class SerialCadenceSource(
 
     public string Name => "USB";
 
+    public CadenceSourceKind Kind => CadenceSourceKind.Usb;
+
+    /// <summary>
+    /// Stricter than <see cref="ResolvePortName"/> in two ways: a configured
+    /// port that is not currently listed does not count, and the port has to
+    /// actually open.
+    ///
+    /// Being listed is not enough -- something else may be holding it, Thonny
+    /// for instance. A takeover that then fails to open would cost the radio
+    /// link and a fresh scan to get it back, every five seconds. That is worth
+    /// opening the port briefly for.
+    /// </summary>
+    public bool CanTakeOver()
+    {
+        if (ListedPortName() is not { } portName)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var port = new SerialPort(portName);
+            port.Open();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     public async Task<bool> TryRunAsync(CancellationToken cancellationToken)
     {
         var portName = ResolvePortName();
@@ -73,11 +104,26 @@ public sealed class SerialCadenceSource(
 
             if (CadenceLineParser.TryParseCad(line.Trim(), out var reading))
             {
-                await recorder.OnReadingAsync(reading, portName, cancellationToken);
+                await recorder.OnReadingAsync(reading, Kind, portName, cancellationToken);
             }
         }
 
         return true;
+    }
+
+    /// <summary>The port as the system lists it right now, without judging it.</summary>
+    private string? ListedPortName()
+    {
+        var ports = SerialPort.GetPortNames();
+
+        if (!string.IsNullOrWhiteSpace(_options.SerialPort))
+        {
+            return ports.Contains(_options.SerialPort, StringComparer.OrdinalIgnoreCase)
+                ? _options.SerialPort
+                : null;
+        }
+
+        return ports.Length == 1 ? ports[0] : null;
     }
 
     private string? ResolvePortName()

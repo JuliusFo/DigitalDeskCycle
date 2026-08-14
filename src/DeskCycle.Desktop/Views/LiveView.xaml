@@ -51,49 +51,14 @@
     <Grid Margin="24,12,24,20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="150" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header: source on the left, period and reset on the right -->
-        <Grid Grid.Row="0">
-            <Border HorizontalAlignment="Left" CornerRadius="999" Padding="12,5">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsSensorConnected}" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <TextBlock Text="{Binding ConnectionText}" FontSize="11">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSensorConnected}" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Border>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <TextBlock Text="{Binding PeriodText}" FontSize="11" VerticalAlignment="Center"
-                           Margin="0,0,10,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                <ui:Button Content="Zurücksetzen" Command="{Binding ResetNowCommand}" />
-            </StackPanel>
-        </Grid>
-
         <!-- Day change: asks and waits instead of deciding on its own -->
-        <Border Grid.Row="1" Margin="0,12,0,0" CornerRadius="8" Padding="14,10"
+        <Border Grid.Row="0" CornerRadius="8" Padding="14,10"
                 Background="{DynamicResource SystemFillColorAttentionBackgroundBrush}"
                 Visibility="{Binding ShowNewDayPrompt, Converter={StaticResource BooleanToVisibility}}">
             <Grid>
@@ -108,7 +73,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Margin="0,12,0,0" CornerRadius="8" ClipToBounds="True"
+        <Border Grid.Row="1" Margin="0,12,0,0" CornerRadius="8" ClipToBounds="True"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
@@ -116,7 +81,7 @@
         </Border>
 
         <!-- Current speed with the zoned bar -->
-        <StackPanel Grid.Row="3" Margin="4,16,4,0">
+        <StackPanel Grid.Row="2" Margin="4,16,4,0">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding SpeedText}" FontSize="34" FontWeight="Light"
                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
@@ -145,7 +110,7 @@
             </Grid>
         </StackPanel>
 
-        <UniformGrid Grid.Row="4" Columns="4" Margin="0,12,0,0">
+        <UniformGrid Grid.Row="3" Columns="4" Margin="0,12,0,0">
             <Border Style="{StaticResource Tile}">
                 <StackPanel>
                     <TextBlock Text="Trittfrequenz" Style="{StaticResource TileLabel}" />
@@ -211,7 +176,7 @@
             </Border>
         </UniformGrid>
 
-        <Border Grid.Row="5" Margin="4,12,4,0" CornerRadius="8" Padding="14"
+        <Border Grid.Row="4" Margin="4,12,4,0" CornerRadius="8" Padding="14"
                 Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
                 Visibility="{Binding HasWarning, Converter={StaticResource BooleanToVisibility}}">
             <TextBlock Text="{Binding WarningText}" TextWrapping="Wrap" FontSize="12"
