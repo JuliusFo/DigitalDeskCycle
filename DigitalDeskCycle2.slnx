@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DeskCycle.Core/DeskCycle.Core.csproj" />
+    <Project Path="src/DeskCycle.Desktop/DeskCycle.Desktop.csproj" />
+  </Folder>
+</Solution>

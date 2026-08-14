@@ -1,0 +1,36 @@
+﻿<ui:FluentWindow x:Class="DeskCycle.Desktop.MainWindow"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                xmlns:views="clr-namespace:DeskCycle.Desktop.Views"
+                Title="DigitalDeskCycle"
+                Height="720" Width="920"
+                MinHeight="520" MinWidth="640"
+                WindowBackdropType="Mica"
+                WindowCornerPreference="Round"
+                ExtendsContentIntoTitleBar="True"
+                WindowStartupLocation="CenterScreen"
+                TextOptions.TextFormattingMode="Display">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="DigitalDeskCycle">
+            <ui:TitleBar.Icon>
+                <ui:ImageIcon Source="pack://application:,,,/Assets/deskcycle.png" />
+            </ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <TabControl Grid.Row="1" Margin="12,0,12,12">
+            <TabItem Header="Live">
+                <views:LiveView DataContext="{Binding Live}" />
+            </TabItem>
+            <TabItem Header="Verlauf">
+                <views:HistoryView DataContext="{Binding History}" />
+            </TabItem>
+        </TabControl>
+    </Grid>
+</ui:FluentWindow>

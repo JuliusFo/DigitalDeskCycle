@@ -1,0 +1,55 @@
+<UserControl x:Class="DeskCycle.Desktop.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:sp="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+             Loaded="OnLoaded"
+             Unloaded="OnUnloaded">
+
+    <Grid Margin="24,16,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="240" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,14">
+            <TextBlock Text="Zeitraum" VerticalAlignment="Center" FontSize="12" Margin="0,0,12,0"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <ui:Button Content="7 Tage" Tag="7" Click="OnPeriodClick" Margin="0,0,6,0" />
+            <ui:Button Content="30 Tage" Tag="30" Click="OnPeriodClick" Margin="0,0,6,0" />
+            <ui:Button Content="90 Tage" Tag="90" Click="OnPeriodClick" Margin="0,0,6,0" />
+            <ui:Button Content="Aktualisieren" Icon="{ui:SymbolIcon ArrowClockwise24}"
+                       Click="OnRefreshClick" Margin="18,0,0,0" />
+        </StackPanel>
+
+        <Border Grid.Row="1" CornerRadius="8" ClipToBounds="True"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <sp:WpfPlot x:Name="DailyPlot" />
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="{Binding Summary}" Margin="2,14,0,10" FontSize="12"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+        <ui:DataGrid Grid.Row="3" x:Name="SessionGrid"
+                     ItemsSource="{Binding Sessions}"
+                     AutoGenerateColumns="False"
+                     IsReadOnly="True"
+                     HeadersVisibility="Column"
+                     GridLinesVisibility="Horizontal"
+                     SelectionMode="Single"
+                     MouseDoubleClick="OnSessionDoubleClick">
+            <ui:DataGrid.Columns>
+                <DataGridTextColumn Header="Datum" Binding="{Binding Date}" Width="160" />
+                <DataGridTextColumn Header="Dauer" Binding="{Binding Duration}" Width="95" />
+                <DataGridTextColumn Header="Umdrehungen" Binding="{Binding Revolutions}" Width="120" />
+                <DataGridTextColumn Header="Distanz" Binding="{Binding Distance}" Width="95" />
+                <DataGridTextColumn Header="Ø U/min" Binding="{Binding AverageRpm}" Width="85" />
+                <DataGridTextColumn Header="Stufe" Binding="{Binding Resistance}" Width="65" />
+            </ui:DataGrid.Columns>
+        </ui:DataGrid>
+    </Grid>
+</UserControl>

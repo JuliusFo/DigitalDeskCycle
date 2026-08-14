@@ -1,0 +1,25 @@
+# Build output. Without these two lines it would be 223 MiB instead of 0.2 MiB.
+bin/
+obj/
+
+# IDEs
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Local tooling settings: contain paths from this machine
+.claude/settings.local.json
+
+# Databases. The real one lives under %LOCALAPPDATA%\DeskCycle and is therefore
+# outside the repository anyway -- this catches test files, such as the
+# deskcycle-design.db created by the EF tooling.
+*.db
+*.db-wal
+*.db-shm
+*.bak
+
+# MicroPython
+__pycache__/
+*.mpy

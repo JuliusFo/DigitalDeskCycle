@@ -1,0 +1,17 @@
+# Line endings normalised to LF in the repository, native in the working
+# directory. Without this, merely switching operating system produces diffs
+# across entire files.
+* text=auto
+
+*.cs        text diff=csharp
+*.xaml      text
+*.csproj    text
+*.slnx      text
+*.json      text
+*.md        text
+*.py        text
+*.ps1       text
+*.gitignore text
+
+*.png binary
+*.ico binary
