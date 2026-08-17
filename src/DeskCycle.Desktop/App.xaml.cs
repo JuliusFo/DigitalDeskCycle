@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
@@ -152,6 +153,15 @@ public partial class App : Application
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<LiveStatusService>();
+
+        // Without a body weight the model says so itself and no figure is shown
+        // anywhere. Swapping in a calibrated one later happens here.
+        //
+        // Resolved lazily, and the settings are loaded during startup before
+        // anything asks for the model.
+        builder.Services.AddSingleton<IEnergyModel>(sp =>
+            new MetEnergyModel(sp.GetRequiredService<UserSettingsStore>().Current.BodyWeightKg));
+
         builder.Services.AddSingleton<SessionRecorder>();
 
         // Registration order is precedence: USB first, because only there do the

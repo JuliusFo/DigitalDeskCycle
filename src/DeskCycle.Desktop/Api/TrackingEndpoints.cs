@@ -1,6 +1,7 @@
 using DeskCycle.Core.Contracts;
 using DeskCycle.Core.Data;
 using DeskCycle.Core.Options;
+using DeskCycle.Core.Statistics;
 using DeskCycle.Core.Tracking;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,7 @@ public static class TrackingEndpoints
         api.MapGet("/sessions", async (
             TrackerDbContext db,
             IOptions<TrackingOptions> options,
+            IEnergyModel energy,
             CancellationToken ct,
             DateTimeOffset? from = null,
             DateTimeOffset? to = null,
@@ -51,13 +53,14 @@ public static class TrackingEndpoints
                 .Take(Math.Clamp(take, 1, 500))
                 .ToListAsync(ct);
 
-            return sessions.Select(s => SessionDto.From(s, options.Value.MetersPerRevolution));
+            return sessions.Select(s => SessionDto.From(s, options.Value.MetersPerRevolution, energy));
         });
 
         api.MapGet("/sessions/{id:int}", async (
             int id,
             TrackerDbContext db,
             IOptions<TrackingOptions> options,
+            IEnergyModel energy,
             CancellationToken ct) =>
         {
             var session = await db.Sessions.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id, ct);
@@ -73,7 +76,7 @@ public static class TrackingEndpoints
                 .ToListAsync(ct);
 
             return Results.Ok(new SessionDetailDto(
-                SessionDto.From(session, options.Value.MetersPerRevolution), samples));
+                SessionDto.From(session, options.Value.MetersPerRevolution, energy), samples));
         });
 
         api.MapGet("/stats/daily", async (

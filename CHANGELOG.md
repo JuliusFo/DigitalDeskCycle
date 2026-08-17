@@ -25,6 +25,8 @@ distance and a history.
 - History: sessions with date, duration and distance, plus distance per day
 - The period since the last reset is a trip meter; at a change of day the
   application asks rather than deciding on its own
+- Estimates calories from body weight and cadence, shown with a `≈` and only
+  once `BodyWeightKg` is set in `settings.json`
 - Warns when the sensor reports implausible pulses — a bouncing reed switch
   makes every derived number too high
 - Lives in the tray, runs on beyond a closed window, optionally starts with
@@ -37,6 +39,9 @@ distance and a history.
 - `Tracking:MetersPerRevolution` is an estimate, accurate to roughly ±20 %.
   Every distance and speed carries that error until it is measured; the
   procedure is in `firmware/README.md`
+- The calorie figure is an estimate from cadence and weight and can be off by
+  up to half: the resistance of the bike is set mechanically and looks the same
+  in the signal at every setting
 - Windows only, and only for one bike at a time
 - The downloads are not code-signed: Windows shows a SmartScreen warning on
   first start

@@ -35,6 +35,13 @@ public sealed record LiveStatus
     public double DistanceMeters { get; init; }
 
     /// <summary>
+    /// Estimated kilocalories of the running session, null when no body weight
+    /// is stated. An estimate from cadence and weight -- the resistance of the
+    /// bike is invisible in the signal.
+    /// </summary>
+    public double? SessionCaloriesKcal { get; init; }
+
+    /// <summary>
     /// Diagnostic counter from the firmware. While it stays at 0 the sensor
     /// counts every revolution exactly once. If it climbs, check the reed switch.
     ///

@@ -1,5 +1,6 @@
 using DeskCycle.Core.Data;
 using DeskCycle.Core.Options;
+using DeskCycle.Core.Statistics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ public sealed class SessionRecorder(
     IServiceScopeFactory scopeFactory,
     IOptions<TrackingOptions> options,
     LiveStatusService live,
+    IEnergyModel energy,
     TimeProvider clock,
     ILogger<SessionRecorder> logger)
 {
@@ -218,6 +220,7 @@ public sealed class SessionRecorder(
         int revolutionDelta = 0)
     {
         var rpm = reading?.Rpm ?? 0;
+        var sessionDuration = HasActiveSession ? now - _sessionStartedAt : TimeSpan.Zero;
 
         var status = new LiveStatus
         {
@@ -226,12 +229,19 @@ public sealed class SessionRecorder(
             SourceName = sourceName,
             SessionActive = HasActiveSession,
             SessionStartedAt = HasActiveSession ? _sessionStartedAt : null,
-            SessionDuration = HasActiveSession ? now - _sessionStartedAt : TimeSpan.Zero,
+            SessionDuration = sessionDuration,
             SessionRevolutions = _sessionRevolutions,
             RevolutionDelta = revolutionDelta,
             Rpm = rpm,
             SpeedKmh = rpm * _options.MetersPerRevolution * 60 / 1000,
             DistanceMeters = _sessionRevolutions * _options.MetersPerRevolution,
+
+            // From the session's average cadence, the same way a stored session
+            // is measured afterwards -- so the running figure and the recorded
+            // one cannot drift apart.
+            SessionCaloriesKcal = sessionDuration > TimeSpan.Zero
+                ? energy.Kcal(_sessionRevolutions / sessionDuration.TotalMinutes, sessionDuration)
+                : null,
             SuspectCount = reading?.Suspect,
         };
 

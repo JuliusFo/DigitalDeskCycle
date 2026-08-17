@@ -137,6 +137,17 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
     public string SessionsAndPausesText => $"{Summary.Sessions} · {Summary.Pauses}";
 
     /// <summary>
+    /// An estimate, and marked as one. Without a body weight there is nothing to
+    /// estimate from -- then the tile says where to put it rather than showing a
+    /// figure for an invented default person.
+    /// </summary>
+    public string CaloriesText => Summary.CaloriesKcal is { } kcal ? $"≈ {kcal:0}" : "—";
+
+    public string CaloriesHint => Summary.CaloriesKcal is null
+        ? "Für die Schätzung fehlt das Körpergewicht: BodyWeightKg in settings.json"
+        : "Schätzung aus Trittfrequenz und Körpergewicht — der Widerstand der Stufe ist im Signal nicht zu sehen";
+
+    /// <summary>
     /// The counter comes raw from the firmware. If it is not 0, the reed switch
     /// is double-counting revolutions and every value above is too high. Over
     /// Bluetooth it is null -- the profile does not know it.

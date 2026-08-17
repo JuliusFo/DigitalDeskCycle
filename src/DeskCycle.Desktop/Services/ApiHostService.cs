@@ -1,5 +1,6 @@
 using DeskCycle.Core.Data;
 using DeskCycle.Core.Options;
+using DeskCycle.Core.Statistics;
 using DeskCycle.Core.Tracking;
 using DeskCycle.Desktop.Api;
 using DeskCycle.Desktop.Hubs;
@@ -27,6 +28,7 @@ namespace DeskCycle.Desktop.Services;
 public sealed class ApiHostService(
     LiveStatusService live,
     IOptions<TrackingOptions> trackingOptions,
+    IEnergyModel energy,
     UserSettingsStore settings,
     ILogger<ApiHostService> logger)
 {
@@ -67,6 +69,7 @@ public sealed class ApiHostService(
 
             builder.Services.AddSingleton(live);
             builder.Services.AddSingleton(trackingOptions);
+            builder.Services.AddSingleton(energy);
             builder.Services.AddDbContext<TrackerDbContext>(o => o.UseSqlite(AppPaths.ConnectionString));
             builder.Services.AddSignalR();
             builder.Services.AddHostedService<SignalRLiveBridge>();

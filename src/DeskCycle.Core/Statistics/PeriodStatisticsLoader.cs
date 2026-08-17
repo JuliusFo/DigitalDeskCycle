@@ -17,12 +17,13 @@ namespace DeskCycle.Core.Statistics;
 /// </summary>
 public sealed class PeriodStatisticsLoader(
     IDbContextFactory<TrackerDbContext> dbFactory,
-    IOptions<TrackingOptions> options)
+    IOptions<TrackingOptions> options,
+    IEnergyModel energy)
 {
     private readonly TrackingOptions _options = options.Value;
 
     public ActivityAccumulator CreateAccumulator() =>
-        new(_options.MetersPerRevolution, TimeSpan.FromSeconds(_options.PauseThresholdSeconds));
+        new(_options.MetersPerRevolution, TimeSpan.FromSeconds(_options.PauseThresholdSeconds), energy);
 
     public async Task<ActivityAccumulator> LoadAsync(
         DateTimeOffset since, CancellationToken cancellationToken = default)

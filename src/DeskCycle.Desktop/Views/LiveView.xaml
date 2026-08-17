@@ -110,7 +110,9 @@
             </Grid>
         </StackPanel>
 
-        <UniformGrid Grid.Row="3" Columns="4" Margin="0,12,0,0">
+        <!-- Three columns for nine tiles: with four the last row would stay half
+             empty. -->
+        <UniformGrid Grid.Row="3" Columns="3" Margin="0,12,0,0">
             <Border Style="{StaticResource Tile}">
                 <StackPanel>
                     <TextBlock Text="Trittfrequenz" Style="{StaticResource TileLabel}" />
@@ -172,6 +174,15 @@
                 <StackPanel>
                     <TextBlock Text="Einheiten · Pausen" Style="{StaticResource TileLabel}" />
                     <TextBlock Text="{Binding SessionsAndPausesText}" Style="{StaticResource TileValue}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Tile}" ToolTip="{Binding CaloriesHint}">
+                <StackPanel>
+                    <TextBlock Text="Kalorien" Style="{StaticResource TileLabel}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding CaloriesText}" Style="{StaticResource TileValue}" />
+                        <TextBlock Text="kcal" Style="{StaticResource TileUnit}" VerticalAlignment="Bottom" Margin="4,0,0,4" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </UniformGrid>

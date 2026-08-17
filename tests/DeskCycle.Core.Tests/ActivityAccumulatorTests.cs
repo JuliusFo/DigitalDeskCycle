@@ -15,6 +15,9 @@ public class ActivityAccumulatorTests
 
     private static ActivityAccumulator Create() => new(MetersPerRevolution, PauseThreshold);
 
+    private static ActivityAccumulator CreateWithEnergy() =>
+        new(MetersPerRevolution, PauseThreshold, new MetEnergyModel(bodyWeightKg: 80));
+
     [Fact]
     public void Counts_active_time_from_the_gaps_between_samples()
     {
@@ -93,6 +96,49 @@ public class ActivityAccumulatorTests
         Assert.Equal(60 * MetersPerRevolution * 60 / 1000, summary.PeakSpeedKmh, 6);
         Assert.Equal(1, summary.Sessions);
         Assert.Equal(0, summary.Pauses);
+    }
+
+    [Fact]
+    public void Leaves_the_calories_open_without_an_energy_model()
+    {
+        var accumulator = Create();
+
+        accumulator.Add(Start, rpm: 60, revolutionDelta: 0, Start);
+        accumulator.Add(Start.AddSeconds(10), rpm: 60, revolutionDelta: 10, Start);
+
+        Assert.Null(accumulator.Summarize().CaloriesKcal);
+    }
+
+    [Fact]
+    public void Adds_up_calories_while_riding()
+    {
+        var accumulator = CreateWithEnergy();
+
+        accumulator.Add(Start, rpm: 60, revolutionDelta: 0, Start);
+        accumulator.Add(Start.AddSeconds(10), rpm: 60, revolutionDelta: 10, Start);
+        accumulator.Add(Start.AddSeconds(20), rpm: 60, revolutionDelta: 10, Start);
+
+        var kcal = accumulator.Summarize().CaloriesKcal;
+
+        // 20 seconds at 60 rpm, 80 kg: 4.55 kcal a minute, so about 1.5.
+        Assert.NotNull(kcal);
+        Assert.Equal(1.52, kcal.Value, 2);
+    }
+
+    /// <summary>A pause drops out of the time axis, so it must not earn anything either.</summary>
+    [Fact]
+    public void Earns_nothing_over_a_pause()
+    {
+        var accumulator = CreateWithEnergy();
+
+        accumulator.Add(Start, rpm: 60, revolutionDelta: 0, Start);
+        accumulator.Add(Start.AddSeconds(10), rpm: 60, revolutionDelta: 10, Start);
+        var beforeTheBreak = accumulator.Summarize().CaloriesKcal;
+
+        // An hour of standstill, then one more sample.
+        accumulator.Add(Start.AddHours(1), rpm: 60, revolutionDelta: 0, Start);
+
+        Assert.Equal(beforeTheBreak, accumulator.Summarize().CaloriesKcal);
     }
 
     /// <summary>Nothing ridden must not become a division by zero.</summary>

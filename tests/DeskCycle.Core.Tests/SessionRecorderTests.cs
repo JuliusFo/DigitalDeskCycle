@@ -1,5 +1,6 @@
 using DeskCycle.Core.Data;
 using DeskCycle.Core.Options;
+using DeskCycle.Core.Statistics;
 using DeskCycle.Core.Tracking;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ public class SessionRecorderTests : IDisposable
 {
     private const int IdleTimeoutSeconds = 90;
     private const int MinimumRevolutions = 10;
+    private const double BodyWeightKg = 80;
 
     private readonly SqliteConnection _connection;
     private readonly ServiceProvider _provider;
@@ -56,6 +58,7 @@ public class SessionRecorderTests : IDisposable
                 MinimumSessionRevolutions = MinimumRevolutions,
             }),
             _live,
+            new MetEnergyModel(BodyWeightKg),
             _clock,
             NullLogger<SessionRecorder>.Instance);
     }

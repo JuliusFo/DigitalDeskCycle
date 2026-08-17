@@ -160,6 +160,7 @@ Belongs to the user, survives an update.
 | `ApiPort` | `5056` | port of the web server |
 | `ApiAllowRemote` | `false` | `false` = localhost only; `true` binds to the network and triggers the firewall prompt |
 | `ResetAt` | today 00:00 | start of the period the live view summarises |
+| `BodyWeightKg` | `0` | basis for the calorie estimate; `0` = not stated, then no figure is shown |
 
 ## Sharing data
 
@@ -192,6 +193,30 @@ roughly 39 MiB per year at an hour of movement per day.
 The **resistance level** is invisible in the signal — the adjustment on the bike
 is purely mechanical. It can be filled in per session (double-click a row in the
 history) and is the basis for a future power estimate.
+
+## Calories
+
+The live view shows a calorie figure, marked with `≈` because that is what it
+is. It needs `BodyWeightKg` in `settings.json` — deliberately there and not in
+`appsettings.json`, so that an update does not carry it off. Without it the tile
+stays empty rather than showing a figure for an invented default person.
+
+Behind it sits the usual MET formula — kilocalories per minute = MET × 3.5 × kg
+÷ 200 — with the MET value interpolated from the cadence and the resting
+metabolism subtracted: what is meant is what the riding costs on top of sitting
+there.
+
+**Where it falls down:** calories follow from mechanical power, and power is
+exactly what this application cannot see. Sixty revolutions a minute against the
+lightest resistance and against the heaviest are the same signal, and
+energetically a multiple apart. Expect the figure to be off by anywhere up to
+half — it is good for comparing one day against the next, not for a nutrition
+plan.
+
+Making it better means calibrating watts per resistance level. The model sits
+behind [`IEnergyModel`](src/DeskCycle.Core/Statistics/IEnergyModel.cs) and every
+call already passes the level along, so a measured model can take its place
+without touching anything else.
 
 ## Tests
 

@@ -18,6 +18,16 @@ public sealed class UserSettings
     public bool ApiAllowRemote { get; set; }
 
     /// <summary>
+    /// Body weight in kilograms, the basis for the calorie estimate. 0 means
+    /// "not stated" -- then no figure is shown at all, rather than one for an
+    /// invented default person.
+    ///
+    /// Belongs here rather than in appsettings.json: that one is part of the
+    /// program and an update overwrites it.
+    /// </summary>
+    public double BodyWeightKg { get; set; }
+
+    /// <summary>
     /// Start of the period the live view summarises.
     ///
     /// A reset only moves this timestamp -- nothing is deleted. That is why an

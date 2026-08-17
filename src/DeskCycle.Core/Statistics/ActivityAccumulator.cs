@@ -11,7 +11,9 @@ public sealed record PeriodSummary(
     double AverageRpm,
     double PeakSpeedKmh,
     int Sessions,
-    int Pauses);
+    int Pauses,
+    /// <summary>null when no body weight is stated -- see <see cref="IEnergyModel"/>.</summary>
+    double? CaloriesKcal = null);
 
 /// <summary>
 /// Builds the history curve and the summary figures for a period.
@@ -25,13 +27,16 @@ public sealed record PeriodSummary(
 /// marker. A point in time can no longer be read off it -- the curve answers
 /// "how did I ride", not "when".
 /// </summary>
-public sealed class ActivityAccumulator(double metersPerRevolution, TimeSpan pauseThreshold)
+public sealed class ActivityAccumulator(
+    double metersPerRevolution, TimeSpan pauseThreshold, IEnergyModel? energy = null)
 {
     private readonly List<ActivityPoint> _points = [];
     private readonly List<double> _pauseMarkers = [];
 
     private DateTimeOffset? _lastTimestamp;
     private DateTimeOffset? _lastSessionStart;
+    private double _lastRpm;
+    private double _kcal;
 
     public IReadOnlyList<ActivityPoint> Points => _points;
 
@@ -72,6 +77,11 @@ public sealed class ActivityAccumulator(double metersPerRevolution, TimeSpan pau
             else if (gap > TimeSpan.Zero)
             {
                 ActiveSeconds += gap.TotalSeconds;
+
+                // Over the gap the cadence went from the previous value to this
+                // one; the mean is closer than either end. A pause earns
+                // nothing, which is why this sits in the else branch.
+                _kcal += energy?.Kcal((_lastRpm + rpm) / 2, gap) ?? 0;
             }
         }
 
@@ -85,6 +95,7 @@ public sealed class ActivityAccumulator(double metersPerRevolution, TimeSpan pau
 
         _points.Add(new ActivityPoint(ActiveSeconds, speedKmh));
         _lastTimestamp = timestamp;
+        _lastRpm = rpm;
     }
 
     public PeriodSummary Summarize()
@@ -101,6 +112,7 @@ public sealed class ActivityAccumulator(double metersPerRevolution, TimeSpan pau
             minutes > 0 ? Revolutions / minutes : 0,
             PeakSpeedKmh,
             Sessions,
-            _pauseMarkers.Count);
+            _pauseMarkers.Count,
+            energy?.IsConfigured == true ? _kcal : null);
     }
 }
