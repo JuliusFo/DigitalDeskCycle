@@ -178,11 +178,13 @@ menu — while it is off, no socket and no listener exist.
 ## Data model
 
 What gets stored is **revolutions and timestamps**, never kilometres. Distance,
-speed and later watts are derived values.
+speed, calories and later watts are derived values.
 
 The reason: the conversion factor is still an estimate. Correct it and every
 past ride is correct too. Had kilometres been stored, they would stay frozen at
-the estimate forever.
+the estimate forever. The same goes for the calories: change the body weight and
+every figure the application has ever shown changes with it, because none of
+them was ever written down.
 
 Samples are taken once per second, but **only while moving**. Seconds spent
 standing still made up two thirds of the volume and added nothing that the
@@ -192,7 +194,9 @@ roughly 39 MiB per year at an hour of movement per day.
 
 The **resistance level** is invisible in the signal — the adjustment on the bike
 is purely mechanical. It can be filled in per session (double-click a row in the
-history) and is the basis for a future power estimate.
+history). Nothing calculates with it yet: the calorie estimate below gets it
+passed along and ignores it, because there is no calibration to turn a level
+into watts. That measurement is what a power estimate is still waiting for.
 
 ## Calories
 
@@ -230,6 +234,12 @@ counter readings including the Pico's restart, where a session begins and ends,
 which ones get discarded, the pause threshold on the time axis, and the line
 format from the firmware. Those are the places where a mistake stays invisible
 the longest — the numbers still look plausible, they are simply wrong.
+
+The calorie estimate is covered too, though differently: an estimate cannot be
+pinned to a correct value, so the tests hold it to behaving sensibly — more
+cadence and more time cost more, a pause earns nothing, twice the weight costs
+twice as much, and one figure is nailed down as a check on the order of
+magnitude.
 
 The user interface is not covered; nor is anything that needs real hardware.
 
