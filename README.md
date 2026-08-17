@@ -14,9 +14,28 @@ to a Windows application.
 | [`src/DeskCycle.Desktop/`](src/DeskCycle.Desktop/) | WPF application: live view, history, tray icon |
 | [`tools/`](tools/) | `Read-Cadence.ps1` — taps the COM port for troubleshooting |
 
+## Download
+
+Ready-built packages are attached to every
+[release](https://github.com/JuliusFo/DigitalDeskCycle/releases). Unpack the ZIP
+and start `DeskCycle.Desktop.exe` — `appsettings.json` belongs next to it, that
+is where the COM port and the conversion factor live.
+
+| Package | Size | Needs |
+|---------|------|-------|
+| `…-win-x64-self-contained.zip` | ~92 MB | nothing else |
+| `…-win-x64.zip` | ~60 MB | [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
+
+The packages are **not code-signed**. Windows shows a SmartScreen warning on
+first start; *More info → Run anyway*. A certificate costs money that a desk
+bike does not earn.
+
+Without a sensor the application starts anyway and shows both connection icons
+in red — useful for a look around, useless for training.
+
 ## Requirements
 
-- .NET 10 SDK
+- .NET 10 SDK — only to build it yourself; the packages above need none
 - Windows 10 version 2004 or newer
 - For the firmware, see [`firmware/README.md`](firmware/README.md): wiring,
   flashing and the verification steps
@@ -173,6 +192,39 @@ roughly 39 MiB per year at an hour of movement per day.
 The **resistance level** is invisible in the signal — the adjustment on the bike
 is purely mechanical. It can be filled in per session (double-click a row in the
 history) and is the basis for a future power estimate.
+
+## Tests
+
+```bash
+dotnet test DigitalDeskCycle2.slnx
+```
+
+[`tests/DeskCycle.Core.Tests`](tests/DeskCycle.Core.Tests/) covers the
+arithmetic that decides what ends up in the database: the difference between two
+counter readings including the Pico's restart, where a session begins and ends,
+which ones get discarded, the pause threshold on the time axis, and the line
+format from the firmware. Those are the places where a mistake stays invisible
+the longest — the numbers still look plausible, they are simply wrong.
+
+The user interface is not covered; nor is anything that needs real hardware.
+
+## Building a release
+
+The [release workflow](.github/workflows/release.yml) builds both packages on a
+tag and attaches them to the GitHub release:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+Running it by hand from the Actions tab builds the same packages and keeps them
+as workflow artifacts, without touching a release — useful for a dry run.
+
+Locally, if it has to be:
+
+```bash
+dotnet publish src/DeskCycle.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish/self-contained
+```
 
 ## Changing the database schema
 

@@ -3,4 +3,7 @@
     <Project Path="src/DeskCycle.Core/DeskCycle.Core.csproj" />
     <Project Path="src/DeskCycle.Desktop/DeskCycle.Desktop.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DeskCycle.Core.Tests/DeskCycle.Core.Tests.csproj" />
+  </Folder>
 </Solution>

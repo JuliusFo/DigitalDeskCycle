@@ -2,6 +2,11 @@
 bin/
 obj/
 
+# Packages from a local dotnet publish. The real ones come out of the release
+# workflow and live on GitHub.
+publish/
+*.zip
+
 # IDEs
 .vs/
 .idea/

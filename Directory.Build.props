@@ -1,0 +1,15 @@
+<Project>
+
+  <!-- Shared by every project in the repository. The version lands in the
+       assembly and thus in the file properties of the executable: without it
+       every build would call itself 1.0.0.0 and no one could tell which state
+       is running. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Product>DigitalDeskCycle</Product>
+    <Authors>JuliusFo</Authors>
+    <Copyright>Copyright (c) 2026 JuliusFo</Copyright>
+    <RepositoryUrl>https://github.com/JuliusFo/DigitalDeskCycle</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>
