@@ -141,7 +141,7 @@ Belongs to the program, read at startup.
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `Tracking:MetersPerRevolution` | `6.67` | distance per crank revolution — an **estimate**, see below |
+| `Tracking:MetersPerRevolution` | `6.18` | distance per crank revolution — **measured**, see below |
 | `Tracking:SerialPort` | empty | COM port; empty = automatic, as long as there is exactly one |
 | `Tracking:BaudRate` | `115200` | must match the firmware |
 | `Tracking:BluetoothDeviceName` | `DeskCycle` | must match `BLE_NAME` in the firmware |
@@ -180,11 +180,12 @@ menu — while it is off, no socket and no listener exist.
 What gets stored is **revolutions and timestamps**, never kilometres. Distance,
 speed, calories and later watts are derived values.
 
-The reason: the conversion factor is still an estimate. Correct it and every
-past ride is correct too. Had kilometres been stored, they would stay frozen at
-the estimate forever. The same goes for the calories: change the body weight and
-every figure the application has ever shown changes with it, because none of
-them was ever written down.
+The reason: for a long time the conversion factor was a rough estimate, and it
+has just been replaced by a measured one. Every ride ever recorded became more
+accurate at that moment, without anything being recalculated. Had kilometres
+been stored, they would sit at the old estimate forever. The same goes for the
+calories: change the body weight and every figure the application has ever shown
+changes with it, because none of them was ever written down.
 
 Samples are taken once per second, but **only while moving**. Seconds spent
 standing still made up two thirds of the volume and added nothing that the
@@ -303,22 +304,37 @@ debounce time follows from them, is in
 **Only one program can hold the COM port.** Thonny, the capture script and the
 application are mutually exclusive.
 
-## Open point
+## The conversion factor
 
-`Tracking:MetersPerRevolution` is set to `6.67`. The value comes from a rough
-reading off the bike's original display (0.3 km over 45 revolutions) and is
-accurate to roughly ±20 %.
+`Tracking:MetersPerRevolution` is `6.18` — measured on 2026-08-18, not
+estimated. Seven readings a minute apart while pedalling to a metronome at 60
+bpm, each one the distance covered in that minute divided by its 60
+revolutions:
 
-To measure it properly:
+| Minute | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|--------|---|---|---|---|---|---|----|
+| m per revolution | 6.111 | 6.333 | 6.111 | 6.190 | 6.250 | 6.111 | 6.160 |
+
+Mean 6.181, median 6.160, standard deviation 0.085. At roughly 0.37 km a minute
+and a display resolving 10 metres, each single value carries about 2.7 % of
+reading error; averaged over seven of them some **±1 %** remains.
+
+The value before it was 6.67 from a single reading over 45 revolutions, good to
+about ±20 %. The measurement therefore moved every distance and speed in the
+whole history down by 7.3 % — nothing was recalculated for that, because only
+revolutions are ever stored.
+
+To do it again, for another bike or another sensor:
 
 1. Set a metronome to 60 bpm and pedal in time — with the Pico connected, check
    that the display really shows about 60 rpm
 2. Plug the jack back into the original display unit, reset its trip counter
-3. Pedal in time for **exactly 10 minutes** — that is **600 revolutions**
-4. Read the distance, then put `km_read × 1000 ÷ 600` into `appsettings.json`
+3. Read the distance once a minute and divide each minute's gain by 60
+4. Average the readings and put the result into `appsettings.json`
 
-Over 600 revolutions the 0.1 km reading error collapses to about ±1.5 %, instead
-of ±20 % over 45 revolutions.
+Reading once a minute beats one reading at the end: it gives several
+independent values whose scatter shows what the measurement is worth, instead
+of a single number that could be off by a tick without anyone noticing.
 
 ## License
 

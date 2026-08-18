@@ -36,9 +36,9 @@ distance and a history.
 
 ### Known limitations
 
-- `Tracking:MetersPerRevolution` is an estimate, accurate to roughly ±20 %.
-  Every distance and speed carries that error until it is measured; the
-  procedure is in `firmware/README.md`
+- `Tracking:MetersPerRevolution` is measured for this one bike and good to
+  roughly ±1 %. Another bike, or a different mounting of the magnet, needs its
+  own measurement — the procedure is in the README
 - The calorie figure is an estimate from cadence and weight and can be off by
   up to half: the resistance of the bike is set mechanically and looks the same
   in the signal at every setting

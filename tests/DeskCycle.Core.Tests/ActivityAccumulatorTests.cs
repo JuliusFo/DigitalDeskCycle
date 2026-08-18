@@ -8,7 +8,7 @@ namespace DeskCycle.Core.Tests;
 /// </summary>
 public class ActivityAccumulatorTests
 {
-    private const double MetersPerRevolution = 6.67;
+    private const double MetersPerRevolution = 6.18;
 
     private static readonly DateTimeOffset Start = new(2026, 8, 14, 8, 0, 0, TimeSpan.Zero);
     private static readonly TimeSpan PauseThreshold = TimeSpan.FromSeconds(30);

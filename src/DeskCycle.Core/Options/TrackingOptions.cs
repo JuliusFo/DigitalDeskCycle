@@ -5,16 +5,15 @@ public sealed class TrackingOptions
     public const string SectionName = "Tracking";
 
     /// <summary>
-    /// Distance covered per crank revolution. A provisional estimate derived from
-    /// the bike's original display (0.3 km over 45 revolutions) and therefore
-    /// accurate to roughly +/-20 %. The better measuring procedure is described
-    /// in firmware/README.md.
+    /// Distance covered per crank revolution, measured on 2026-08-18: seven
+    /// readings a minute apart at 60 rpm, averaged, good to roughly +/-1 %. The
+    /// procedure and the individual values are in the README.
     ///
     /// The value is never written to the database -- revolutions are what gets
     /// stored. Correcting it later therefore applies retroactively to every
     /// session ever recorded.
     /// </summary>
-    public double MetersPerRevolution { get; set; } = 6.67;
+    public double MetersPerRevolution { get; set; } = 6.18;
 
     /// <summary>COM port of the Pico. Empty = automatic, as long as there is exactly one.</summary>
     public string? SerialPort { get; set; }
