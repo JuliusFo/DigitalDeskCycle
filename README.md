@@ -7,6 +7,8 @@ to a Windows application.
 > The user interface is in German — this is a personal tool for a specific bike.
 > Everything else, including the reasoning in the code, is in English.
 
+![The live view: speed curve over active time, current speed on a zoned bar, and nine tiles with the figures of the period](docs/live.png)
+
 | Part | What it does |
 |------|--------------|
 | [`firmware/`](firmware/) | MicroPython on the Pico: counts pulses, debounces them, reports over USB **and** BLE |
@@ -76,6 +78,8 @@ the day, a real time axis would consist mostly of idle.
 **Verlauf** (*History*) shows individual sessions with date and wall-clock
 duration. That this duration exceeds the active time in the live view is not a
 contradiction — they answer two different questions.
+
+![The history: distance per day as a bar chart, below it the individual sessions with duration, revolutions, distance and average cadence](docs/history.png)
 
 ## Where the data comes from
 
