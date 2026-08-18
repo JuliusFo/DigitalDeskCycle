@@ -80,6 +80,7 @@ duration. That this duration exceeds the active time in the live view is not a
 contradiction — they answer two different questions.
 
 ![The history: distance per day as a bar chart, below it the individual sessions with duration, revolutions, distance and average cadence](docs/history.png)
+
 **Einstellungen** (*Settings*) holds what used to require an editor: the web
 server with its status and switch, body weight, conversion factor, COM port,
 Bluetooth device name, the end of the speed bar and the autostart entry.
@@ -91,6 +92,7 @@ conversion factor recalculates the live view on the spot. Where it is not, the
 page says so: the port and the device name are picked up when the source next
 reconnects, so a running recording is not interrupted.
 
+![The settings page: web server with status and switch, body weight, conversion factor, COM port and Bluetooth device name, each with a line explaining what it does](docs/settings.png)
 
 ## Where the data comes from
 

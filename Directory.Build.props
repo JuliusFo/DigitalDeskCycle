@@ -5,7 +5,7 @@
        every build would call itself 1.0.0.0 and no one could tell which state
        is running. -->
   <PropertyGroup>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Product>DigitalDeskCycle</Product>
     <Authors>JuliusFo</Authors>
     <Copyright>Copyright (c) 2026 JuliusFo</Copyright>

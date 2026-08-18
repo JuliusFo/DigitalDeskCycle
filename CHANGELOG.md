@@ -2,7 +2,7 @@
 
 Notable changes per release. Dates are in ISO format.
 
-## Unreleased
+## 1.1.0 — 2026-08-18
 
 ### Added
 
