@@ -25,8 +25,8 @@ is where the COM port and the conversion factor live.
 
 | Package | Size | Needs |
 |---------|------|-------|
-| `…-win-x64-self-contained.zip` | ~92 MB | nothing else |
-| `…-win-x64.zip` | ~60 MB | [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
+| `…-win-x64-self-contained.zip` | ~87 MB | nothing else |
+| `…-win-x64.zip` | ~19 MB | [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
 
 The packages are **not code-signed**. Windows shows a SmartScreen warning on
 first start; *More info → Run anyway*. A certificate costs money that a desk
