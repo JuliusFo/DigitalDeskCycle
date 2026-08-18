@@ -2,6 +2,29 @@
 
 Notable changes per release. Dates are in ISO format.
 
+## Unreleased
+
+### Added
+
+- **Einstellungen** (settings) as a third view: web server with status, switch
+  and port; body weight; conversion factor; end of the speed bar; COM port and
+  Bluetooth device name; autostart. What used to require an editor now has a
+  place in the application
+- Changes take effect immediately where possible — a corrected weight or
+  conversion factor recalculates the live view at once. Port and device name
+  are picked up on the next reconnect, and the page says so rather than
+  pretending otherwise
+
+### Changed
+
+- The tray menu is down to *Fenster anzeigen*, *Protokoll öffnen* and
+  *Beenden*. Autostart and data sharing moved to the settings page, where their
+  state is visible — two places for one switch would only be two places to keep
+  in step
+- Values changed on the page land in `settings.json` and take precedence over
+  `appsettings.json`. Untouched values stay absent, so a new default from an
+  update still reaches whoever never had an opinion on it
+
 ## 1.0.0 — 2026-08-14
 
 First release. Records the cadence of a desk bike and turns it into sessions,

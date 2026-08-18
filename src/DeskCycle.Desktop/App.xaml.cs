@@ -24,7 +24,6 @@ public partial class App : Application
 {
     private IHost? _host;
     private TaskbarIcon? _trayIcon;
-    private MenuItem? _apiItem;
     private MainWindow? _window;
     private Mutex? _singleInstance;
     private bool _hintShown;
@@ -56,6 +55,13 @@ public partial class App : Application
 
             var settings = _host.Services.GetRequiredService<UserSettingsStore>();
             settings.Load();
+
+            // What the settings page changed lies over the program's defaults.
+            // Has to happen before anything reads the options -- the sources and
+            // the recorder start right after this.
+            TrackingSettingsBinder.Apply(
+                settings.Current,
+                _host.Services.GetRequiredService<IOptions<TrackingOptions>>().Value);
 
             await DatabaseStartup.PrepareAsync(_host.Services);
             await _host.StartAsync();
@@ -160,7 +166,7 @@ public partial class App : Application
         // Resolved lazily, and the settings are loaded during startup before
         // anything asks for the model.
         builder.Services.AddSingleton<IEnergyModel>(sp =>
-            new MetEnergyModel(sp.GetRequiredService<UserSettingsStore>().Current.BodyWeightKg));
+            new MetEnergyModel(() => sp.GetRequiredService<UserSettingsStore>().Current.BodyWeightKg));
 
         builder.Services.AddSingleton<SessionRecorder>();
 
@@ -176,6 +182,7 @@ public partial class App : Application
         builder.Services.AddSingleton<ApiHostService>();
         builder.Services.AddSingleton<LiveViewModel>();
         builder.Services.AddSingleton<HistoryViewModel>();
+        builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();
 
@@ -187,33 +194,15 @@ public partial class App : Application
     /// the application already loaded apply -- a WinForms menu could be
     /// recoloured, but would keep the shape, the metrics and the missing rounded
     /// corners of the Windows 7 era.
+    ///
+    /// Deliberately short: autostart and data sharing live on the settings page,
+    /// where they can show their state properly. Two places for one switch would
+    /// only ever be two places to keep in step.
     /// </summary>
     private void CreateTrayIcon()
     {
-        var autostart = _host!.Services.GetRequiredService<AutostartService>();
-        var settings = _host.Services.GetRequiredService<UserSettingsStore>();
-        var api = _host.Services.GetRequiredService<ApiHostService>();
-
         var showItem = new MenuItem { Header = "Fenster anzeigen" };
         showItem.Click += (_, _) => ShowMainWindow();
-
-        var autostartItem = new MenuItem
-        {
-            Header = "Mit Windows starten",
-            IsCheckable = true,
-            IsChecked = autostart.IsEnabled,
-        };
-        // Click rather than Checked: the event only fires on real interaction,
-        // not when we reset the tick ourselves.
-        autostartItem.Click += (_, _) => autostart.SetEnabled(autostartItem.IsChecked);
-
-        _apiItem = new MenuItem
-        {
-            Header = $"Daten freigeben ({api.Url})",
-            IsCheckable = true,
-            IsChecked = settings.Current.ApiEnabled,
-        };
-        _apiItem.Click += async (_, _) => await ToggleApiAsync();
 
         var logItem = new MenuItem { Header = "Protokoll öffnen" };
         logItem.Click += (_, _) => OpenLogFolder();
@@ -223,9 +212,6 @@ public partial class App : Application
 
         var menu = new ContextMenu();
         menu.Items.Add(showItem);
-        menu.Items.Add(new Separator());
-        menu.Items.Add(autostartItem);
-        menu.Items.Add(_apiItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(logItem);
         menu.Items.Add(exitItem);
@@ -296,31 +282,6 @@ public partial class App : Application
             "DigitalDeskCycle läuft weiter",
             "Die Aufzeichnung läuft im Hintergrund. Beenden über das Symbol in der Taskleiste.",
             NotificationIcon.Info);
-    }
-
-    private async Task ToggleApiAsync()
-    {
-        var settings = _host!.Services.GetRequiredService<UserSettingsStore>();
-        var api = _host.Services.GetRequiredService<ApiHostService>();
-
-        if (_apiItem!.IsChecked && !await api.StartAsync())
-        {
-            _apiItem.IsChecked = false;
-
-            MessageBox.Show(
-                $"Der Webserver konnte auf Port {settings.Current.ApiPort} nicht starten. "
-                + "Vermutlich ist der Port bereits belegt.",
-                "DigitalDeskCycle", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        if (!_apiItem.IsChecked)
-        {
-            await api.StopAsync();
-        }
-
-        settings.Current.ApiEnabled = _apiItem.IsChecked;
-        settings.Save();
     }
 
     private async void ExitApplication()

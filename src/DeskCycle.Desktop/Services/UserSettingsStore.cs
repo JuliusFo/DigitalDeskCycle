@@ -27,6 +27,20 @@ public sealed class UserSettings
     /// </summary>
     public double BodyWeightKg { get; set; }
 
+    // ------------------------------------------------------------ overrides
+    //
+    // What the settings page writes when the value is changed there. null means
+    // "not touched" -- then appsettings.json applies, and a new default from an
+    // update reaches whoever never changed it.
+
+    public double? MetersPerRevolution { get; set; }
+
+    public string? SerialPort { get; set; }
+
+    public string? BluetoothDeviceName { get; set; }
+
+    public double? SpeedGaugeMaxKmh { get; set; }
+
     /// <summary>
     /// Start of the period the live view summarises.
     ///

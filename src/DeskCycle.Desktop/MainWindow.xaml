@@ -168,6 +168,9 @@
             <TabItem Header="Verlauf">
                 <views:HistoryView DataContext="{Binding History}" />
             </TabItem>
+            <TabItem Header="Einstellungen">
+                <views:SettingsView DataContext="{Binding Settings}" />
+            </TabItem>
         </views:StripTabControl>
     </Grid>
 </ui:FluentWindow>

@@ -13,7 +13,7 @@ to a Windows application.
 |------|--------------|
 | [`firmware/`](firmware/) | MicroPython on the Pico: counts pulses, debounces them, reports over USB **and** BLE |
 | [`src/DeskCycle.Core/`](src/DeskCycle.Core/) | Capture, session detection, storage. Platform-neutral, no UI |
-| [`src/DeskCycle.Desktop/`](src/DeskCycle.Desktop/) | WPF application: live view, history, tray icon |
+| [`src/DeskCycle.Desktop/`](src/DeskCycle.Desktop/) | WPF application: live view, history, settings, tray icon |
 | [`tools/`](tools/) | `Read-Cadence.ps1` — taps the COM port for troubleshooting |
 
 ## Download
@@ -57,7 +57,7 @@ A session starts automatically with the first revolution and ends after 90
 seconds of standstill. Sessions below 10 revolutions are discarded, so that a
 pedal nudged in passing does not become a training session.
 
-## The two views
+## The three views
 
 **Live** (*Live*) summarises the period **since the last reset** — think trip
 meter. Two ways to set it:
@@ -80,6 +80,17 @@ duration. That this duration exceeds the active time in the live view is not a
 contradiction — they answer two different questions.
 
 ![The history: distance per day as a bar chart, below it the individual sessions with duration, revolutions, distance and average cadence](docs/history.png)
+**Einstellungen** (*Settings*) holds what used to require an editor: the web
+server with its status and switch, body weight, conversion factor, COM port,
+Bluetooth device name, the end of the speed bar and the autostart entry.
+Everything written there goes into `settings.json` and therefore survives an
+update.
+
+Changes take effect immediately where that is possible — a corrected weight or
+conversion factor recalculates the live view on the spot. Where it is not, the
+page says so: the port and the device name are picked up when the source next
+reconnects, so a running recording is not interrupted.
+
 
 ## Where the data comes from
 
@@ -141,7 +152,8 @@ history with it.
 
 ### `src/DeskCycle.Desktop/appsettings.json`
 
-Belongs to the program, read at startup.
+Belongs to the program, read at startup. These are defaults: what the settings
+page changes lands in `settings.json` and takes precedence.
 
 | Key | Default | Purpose |
 |-----|---------|---------|
@@ -156,7 +168,10 @@ Belongs to the program, read at startup.
 
 ### `%LOCALAPPDATA%\DeskCycle\settings.json`
 
-Belongs to the user, survives an update.
+Belongs to the user, survives an update. Everything here is editable on the
+settings page; the four values at the bottom override the program's defaults
+from `appsettings.json` and stay absent until they are changed, so that a new
+default from an update still reaches whoever never had an opinion on it.
 
 | Key | Default | Purpose |
 |-----|---------|---------|
@@ -165,11 +180,16 @@ Belongs to the user, survives an update.
 | `ApiAllowRemote` | `false` | `false` = localhost only; `true` binds to the network and triggers the firewall prompt |
 | `ResetAt` | today 00:00 | start of the period the live view summarises |
 | `BodyWeightKg` | `0` | basis for the calorie estimate; `0` = not stated, then no figure is shown |
+| `MetersPerRevolution` | absent | overrides the measured factor from `appsettings.json` |
+| `SerialPort` | absent | overrides the COM port |
+| `BluetoothDeviceName` | absent | overrides the device name |
+| `SpeedGaugeMaxKmh` | absent | overrides the end of the speed bar |
 
 ## Sharing data
 
-Off by default. Switch it on with *Daten freigeben* (share data) in the tray
-menu — while it is off, no socket and no listener exist.
+Off by default. The switch is on the **Einstellungen** (settings) page, together
+with the port and the status — while it is off, no socket and no listener
+exist.
 
 | Endpoint | Returns |
 |----------|---------|
@@ -206,9 +226,10 @@ into watts. That measurement is what a power estimate is still waiting for.
 ## Calories
 
 The live view shows a calorie figure, marked with `≈` because that is what it
-is. It needs `BodyWeightKg` in `settings.json` — deliberately there and not in
-`appsettings.json`, so that an update does not carry it off. Without it the tile
-stays empty rather than showing a figure for an invented default person.
+is. It needs a body weight, which the settings page asks for and stores in
+`settings.json` — deliberately there and not in `appsettings.json`, so that an
+update does not carry it off. Without it the tile stays empty rather than
+showing a figure for an invented default person.
 
 Behind it sits the usual MET formula — kilocalories per minute = MET × 3.5 × kg
 ÷ 200 — with the MET value interpolated from the cadence and the resting

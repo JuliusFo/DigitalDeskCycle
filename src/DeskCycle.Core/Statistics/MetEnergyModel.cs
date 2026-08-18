@@ -19,8 +19,18 @@ namespace DeskCycle.Core.Statistics;
 /// Counted net of the resting metabolism (one MET is subtracted): what is meant
 /// is what the riding costs on top, not what sitting there costs anyway.
 /// </summary>
-public sealed class MetEnergyModel(double bodyWeightKg) : IEnergyModel
+public sealed class MetEnergyModel(Func<double> bodyWeightKg) : IEnergyModel
 {
+    /// <summary>
+    /// A weight that cannot change afterwards -- for tests and for one-off
+    /// calculations. The application uses the other constructor, so that a
+    /// weight edited on the settings page takes effect without rebuilding the
+    /// model.
+    /// </summary>
+    public MetEnergyModel(double bodyWeightKg) : this(() => bodyWeightKg)
+    {
+    }
+
     /// <summary>Cadence in revolutions per minute against the MET value at that cadence.</summary>
     private static readonly (double Rpm, double Met)[] Curve =
     [
@@ -32,7 +42,7 @@ public sealed class MetEnergyModel(double bodyWeightKg) : IEnergyModel
         (110, 8.0),     // not for long
     ];
 
-    public bool IsConfigured => bodyWeightKg > 0;
+    public bool IsConfigured => bodyWeightKg() > 0;
 
     public double? Kcal(double rpm, TimeSpan duration, int? resistanceLevel = null)
     {
@@ -50,7 +60,7 @@ public sealed class MetEnergyModel(double bodyWeightKg) : IEnergyModel
         // the curve is under one MET.
         var net = Math.Max(0, MetFor(rpm) - 1);
 
-        return net * 3.5 * bodyWeightKg / 200 * duration.TotalMinutes;
+        return net * 3.5 * bodyWeightKg() / 200 * duration.TotalMinutes;
     }
 
     private static double MetFor(double rpm)
