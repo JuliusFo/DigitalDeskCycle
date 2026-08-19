@@ -277,11 +277,18 @@ The [release workflow](.github/workflows/release.yml) builds both packages on a
 tag and attaches them to the GitHub release:
 
 ```bash
-git tag v1.0.0 && git push origin v1.0.0
+git tag v1.1.0 && git push origin v1.1.0
 ```
 
 Running it by hand from the Actions tab builds the same packages and keeps them
 as workflow artifacts, without touching a release — useful for a dry run.
+
+The release text comes from the matching section of
+[`CHANGELOG.md`](CHANGELOG.md), so the version heading there has to match the
+tag. GitHub's own generated notes are no use here: they are built from pull
+requests, and everything goes straight onto `main`. A release that already
+exists keeps whatever text it has — the workflow only attaches the packages
+then.
 
 Locally, if it has to be:
 

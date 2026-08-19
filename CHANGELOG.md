@@ -2,6 +2,14 @@
 
 Notable changes per release. Dates are in ISO format.
 
+## Unreleased
+
+### Changed
+
+- The release notes now come from the matching section of this file. GitHub's
+  generated ones were built from pull requests, of which there are none here —
+  they came out as a bare compare link
+
 ## 1.1.0 — 2026-08-18
 
 ### Added

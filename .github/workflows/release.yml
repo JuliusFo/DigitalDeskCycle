@@ -17,7 +17,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # Full history: the release notes name the previous version, which comes
+      # from the tags.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -75,6 +79,55 @@ jobs:
           name: packages
           path: '*.zip'
 
+      # The generated notes are built from pull requests, and there are none
+      # here -- everything goes straight onto main, so they come out as a bare
+      # compare link. The changelog section says what actually changed.
+      - name: Release notes from the changelog
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $tag = '${{ steps.version.outputs.name }}'
+          # Explicit encoding: read as ANSI the dashes and umlauts would arrive broken.
+          $lines = Get-Content CHANGELOG.md -Encoding utf8
+
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "^##\s+$([regex]::Escape($version))\b") { $start = $i + 1; break }
+          }
+
+          if ($start -lt 0) {
+            Write-Host "No section for $version in CHANGELOG.md, the generated notes will have to do."
+            exit 0
+          }
+
+          $end = $lines.Count
+          for ($i = $start; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match '^##\s') { $end = $i; break }
+          }
+
+          $body = if ($end -gt $start) { ($lines[$start..($end - 1)] -join "`n").Trim() } else { '' }
+          if (-not $body) {
+            Write-Host "Section for $version is empty, the generated notes will have to do."
+            exit 0
+          }
+
+          # Same link the generated notes would carry, kept for the diff.
+          # The next tag below this one, not simply the highest other one:
+          # rebuilding an older release would otherwise link forwards.
+          $tags = @(git tag --list 'v*' --sort=-v:refname)
+          $index = [array]::IndexOf($tags, $tag)
+          $previous = if ($index -ge 0 -and $index + 1 -lt $tags.Count) { $tags[$index + 1] }
+                      elseif ($index -lt 0) { $tags | Select-Object -First 1 }
+                      else { $null }
+          if ($previous) {
+            $body += "`n`n**Full Changelog**: https://github.com/${{ github.repository }}/compare/$previous...$tag"
+          }
+
+          Set-Content release-notes.md -Value $body -Encoding utf8
+          Write-Host "Release notes taken from the changelog:"
+          Write-Host $body
+
       # Tagged: attach to the release, creating it if it does not exist yet.
       - name: Attach to release
         if: github.ref_type == 'tag'
@@ -89,5 +142,11 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag $files --clobber
           } else {
-            gh release create $tag $files --title $tag --generate-notes
+            # A release someone wrote themselves keeps its text; only a
+            # new one gets the changelog section.
+            if (Test-Path release-notes.md) {
+              gh release create $tag $files --title $tag --notes-file release-notes.md
+            } else {
+              gh release create $tag $files --title $tag --generate-notes
+            }
           }
